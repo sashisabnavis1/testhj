@@ -1,0 +1,43 @@
+name: deploy-sql
+run-name: Deploy changed objects
+on: [push]
+jobs:
+  test-output:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Test Output
+      run: echo "Hope this works"
+  connect-remote:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install traceroute
+      run: sudo apt-get update && sudo apt-get install -y traceroute
+    - name: Run Traceroute
+      run: traceroute -I 10.3.1.41
+    - name: Save Traceroute output
+      run: |
+        traceroute -I  10.3.1.49 > traceroute_output.txt
+        cat traceroute_output.txt
+    - name: Run a sample SQL on remote
+      run: | 
+            CHILD_BRANCH=END-5678_Latam_Story
+            PARENT_BRANCH=DEV_BRANCH          
+            TMP_DIR=$(mktemp -d)
+            cd "$TMP_DIR"
+            echo "here"
+            echo "select top 1 * from t_employee" > query.sql
+            #traceroute -I  us1-scldbx-d01
+            git clone https://github.com/resmed/wms-cicd-take2
+            cd wms-cicd-take2
+            pwd
+            ls
+            git branch          
+            git checkout "$CHILD_BRANCH"
+            git checkout "$PARENT_BRANCH"
+            git status
+            for file in $(git diff --name-only "$PARENT_BRANCH".."$CHILD_BRANCH"); do     cp "$file" "$TMP_DIR";      done
+            cd "$TMP_DIR"
+            ls
+            mv dbo.v_hjship_request.sql v_hjship_request.sql
+            ls
